@@ -2,7 +2,7 @@
 import {create} from "../zustand-nut";
 
 interface BearState {
-  bears: number;
+  bears: number; // 状态值
   increase: (by?: number) => void;
   decrease: (by?: number) => void;
   reset: () => void;
