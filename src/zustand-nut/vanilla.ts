@@ -1,21 +1,22 @@
-export const createStore = ((createState) =>
-  createState ? createStoreImpl(createState) : createStoreImpl) as CreateStore;
-
-type SetStateInternal<T> = {
-  _(
+export interface StoreApi<T> {
+  setState: (
     partial: T | Partial<T> | {_(state: T): T | Partial<T>}["_"],
     replace?: boolean | undefined
-  ): void;
-}["_"];
+  ) => void;
 
-export interface StoreApi<T> {
-  setState: SetStateInternal<T>;
   getState: () => T;
   subscribe: (listener: (state: T, prevState: T) => void) => () => void;
   destroy: () => void;
 }
 
-const createStoreImpl = (createState) => {
+export type StateCreator<T> = (
+  setState: StoreApi<T>["setState"],
+  getState: StoreApi<T>["getState"]
+) => T;
+
+export const createStore = (createState: any) => createStoreImpl(createState);
+
+const createStoreImpl = (createState: any) => {
   type TState = ReturnType<typeof createState>;
   let state: TState;
   type Listener = (state: TState, prevState: TState) => void;
@@ -29,6 +30,7 @@ const createStoreImpl = (createState) => {
         : partial;
     if (!Object.is(nextState, state)) {
       const previousState = state;
+      // 如果replace为true，或者nextState不是对象，则不是合并，而是直接替换旧state
       state =
         replace ?? typeof nextState !== "object"
           ? (nextState as TState)
