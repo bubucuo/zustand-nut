@@ -1,5 +1,5 @@
-import {create} from "zustand";
-// import {create} from "../zustand-nut";
+// import {create} from "zustand";
+import {create} from "../zustand-nut";
 
 interface BearState {
   bears: number; // 状态值
@@ -12,7 +12,7 @@ interface BearState {
   increaseCount: () => void;
 }
 
-const useBearStore = create<BearState>((set) => ({
+const useBearStore = create<BearState>()((set) => ({
   bears: 0,
   count: 100,
   increase: (by = 1) => set((state) => ({bears: state.bears + by})),
