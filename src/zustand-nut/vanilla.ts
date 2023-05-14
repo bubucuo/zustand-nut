@@ -1,59 +1,71 @@
-// js 状态管理库
+type SetStateInternal<T> = {
+  _(
+    partial: T | Partial<T> | {_(state: T): T | Partial<T>}["_"],
+    replace?: boolean | undefined
+  ): void;
+}["_"];
 
 export interface StoreApi<T> {
   getState: () => T;
-  setState: (
-    partial: T | Partial<T> | {_(state: T): T | Partial<T>}["_"],
-    replace?: boolean | undefined
-  ) => void;
+  // 修改状态
+  setState: SetStateInternal<T>;
   subscribe: (listener: (state: T, prevState: T) => void) => () => void;
   destroy: () => void;
 }
 
 export type StateCreator<T> = (
   setState: StoreApi<T>["setState"],
-  getState: StoreApi<T>["getState"]
+  getState: StoreApi<T>["getState"],
+  store: StoreApi<T>
 ) => T;
 
-export const createStore = (createState: any) => {
+type CreateStore = {
+  <T>(createState: StateCreator<T>): StoreApi<T>;
+  <T>(): (createState: StateCreator<T>) => StoreApi<T>;
+};
+
+type CreateStoreImpl = <T>(createState: StateCreator<T>) => StoreApi<T>;
+
+export const createStore = ((createState) =>
+  createState ? createStoreImpl(createState) : createStoreImpl) as CreateStore;
+
+export const createStoreImpl: CreateStoreImpl = (createState) => {
   type TState = ReturnType<typeof createState>;
   type Listener = (state: TState, prevState: TState) => void;
 
   let state: TState;
-  let listeners: Set<Listener> = new Set();
+  const listeners: Set<Listener> = new Set();
 
-  const getState: StoreApi<TState>["getState"] = () => state;
-  // 修改状态值的函数
   const setState: StoreApi<TState>["setState"] = (partial, replace) => {
-    const nextState = typeof partial === "function" ? partial(state) : partial;
-
+    const nextState =
+      typeof partial === "function"
+        ? (partial as (state: TState) => TState)(state)
+        : partial;
     if (!Object.is(nextState, state)) {
-      const prevState = state;
+      const previousState = state;
       state =
         replace ?? typeof nextState !== "object"
-          ? nextState
+          ? (nextState as TState)
           : Object.assign({}, state, nextState);
-      listeners.forEach((listener) => listener(state, prevState));
+      listeners.forEach((listener) => listener(state, previousState));
     }
   };
 
+  const getState: StoreApi<TState>["getState"] = () => state;
   const subscribe: StoreApi<TState>["subscribe"] = (listener: Listener) => {
     listeners.add(listener);
-    // 取消订阅
+
     return () => listeners.delete(listener);
   };
   const destroy: StoreApi<TState>["destroy"] = () => {
     listeners.clear();
   };
-
-  state = createState(setState, getState);
-
   const api = {
     getState,
     setState,
-    subscribe,
     destroy,
+    subscribe,
   };
-
-  return api;
+  state = createState(setState, getState, api);
+  return api as any;
 };
