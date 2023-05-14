@@ -41,11 +41,11 @@ type Create = {
   <S extends StoreApi<unknown>>(store: S): UseBoundStore<S>;
 };
 
-export const create: Create = function <T>(
+export const create = function <T>(
   createState: StateCreator<T, [], []> | undefined
 ) {
   return createState ? createImpl(createState) : createImpl;
-};
+} as Create;
 
 function createImpl<T>(createState: StateCreator<T, [], []>) {
   const api =
