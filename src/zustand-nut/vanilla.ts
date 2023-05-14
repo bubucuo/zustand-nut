@@ -1,19 +1,58 @@
-export interface StoreApi<T> {
-  setState: (
+// js 状态管理库
+
+type SetStateInternal<T> = {
+  _(
     partial: T | Partial<T> | {_(state: T): T | Partial<T>}["_"],
     replace?: boolean | undefined
-  ) => void;
+  ): void;
+}["_"];
+
+export interface StoreApi<T> {
   getState: () => T;
+  // setState: (
+  //   partial: T | Partial<T> | {_(state: T): T | Partial<T>}["_"],
+  //   replace?: boolean | undefined
+  // ) => void;
+  setState: SetStateInternal<T>;
+
   subscribe: (listener: (state: T, prevState: T) => void) => () => void;
   destroy: () => void;
 }
 
-export type StateCreator<T> = (
-  setState: StoreApi<T>["setState"],
-  getState: StoreApi<T>["getState"]
-) => T;
+type Get<T, K, F> = K extends keyof T ? T[K] : F;
 
-export const createStore = (createState: any) => {
+export type Mutate<S, Ms> = number extends Ms["length" & keyof Ms]
+  ? S
+  : Ms extends []
+  ? S
+  : Ms extends [[infer Mi, infer Ma], ...infer Mrs]
+  ? Mutate<StoreMutators<S, Ma>[Mi & StoreMutatorIdentifier], Mrs>
+  : never;
+
+export interface StoreMutators<S, A> {}
+export type StoreMutatorIdentifier = keyof StoreMutators<unknown, unknown>;
+
+// export type StateCreator<T> = (
+//   setState: StoreApi<T>["setState"],
+//   getState: StoreApi<T>["getState"]
+// ) => T;
+
+export type StateCreator<
+  T,
+  Mis extends [StoreMutatorIdentifier, unknown][] = [],
+  Mos extends [StoreMutatorIdentifier, unknown][] = [],
+  U = T
+> = ((
+  setState: Get<Mutate<StoreApi<T>, Mis>, "setState", never>,
+  getState: Get<Mutate<StoreApi<T>, Mis>, "getState", never>,
+  store: Mutate<StoreApi<T>, Mis>
+) => U) & {$$storeMutators?: Mos};
+
+type CreateStore = <T, Mos extends [StoreMutatorIdentifier, unknown][] = []>(
+  initializer: StateCreator<T, [], Mos>
+) => Mutate<StoreApi<T>, Mos>;
+
+export const createStore: CreateStore = (createState) => {
   type TState = ReturnType<typeof createState>;
   type Listener = (state: TState, prevState: TState) => void;
 
@@ -50,7 +89,7 @@ export const createStore = (createState: any) => {
     subscribe,
   };
 
-  state = createState(setState, getState);
+  state = createState(setState, getState, api);
 
-  return api;
+  return api as any;
 };
