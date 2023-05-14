@@ -30,10 +30,10 @@ export type UseBoundStore<S extends WithReact<ReadonlyStoreApi<unknown>>> = {
 
 type Create = {
   <T, Mos extends [StoreMutatorIdentifier, unknown][] = []>(
-    initializer?: StateCreator<T, [], Mos>
+    initializer: StateCreator<T, [], Mos>
   ): UseBoundStore<Mutate<StoreApi<T>, Mos>>;
   <T>(): <Mos extends [StoreMutatorIdentifier, unknown][] = []>(
-    initializer?: StateCreator<T, [], Mos>
+    initializer: StateCreator<T, [], Mos>
   ) => UseBoundStore<Mutate<StoreApi<T>, Mos>>;
   /**
    * @deprecated Use `useStore` hook to bind store
@@ -41,8 +41,8 @@ type Create = {
   <S extends StoreApi<unknown>>(store: S): UseBoundStore<S>;
 };
 
-export const create: any = function <T>(
-  createState?: any //StateCreator<T, [], []> | undefined
+export const create: Create = function <T>(
+  createState: StateCreator<T, [], []> | undefined
 ) {
   return createState ? createImpl(createState) : createImpl;
 };
