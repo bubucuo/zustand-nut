@@ -2,7 +2,12 @@ import useBearStore from "../store/useBearStore";
 
 export default function BearsPage() {
   const bearsStore = useBearStore();
-  const {bears, count, increase, decrease, reset, increaseCount} = bearsStore;
+  console.log(
+    "%c [ bearsStore ]-5",
+    "font-size:13px; background:pink; color:#bf2c9f;",
+    bearsStore
+  );
+  const {bears, increase, decrease, reset, count, increaseCount} = bearsStore;
   return (
     <div>
       <h3>BearsPage</h3>
@@ -11,7 +16,7 @@ export default function BearsPage() {
       <button onClick={() => decrease()}>decrease {bears}</button>
       <button onClick={() => reset()}>reset</button>
 
-      <button onClick={() => increaseCount()}>count: {count}</button>
+      <button onClick={() => increaseCount()}>count {count}</button>
 
       {/* <Child /> */}
     </div>
