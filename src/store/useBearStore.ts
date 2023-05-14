@@ -1,5 +1,5 @@
-// import {create} from "zustand";
-import {create} from "../zustand-nut";
+import {create} from "zustand";
+// import {create} from "../zustand-nut";
 
 interface BearState {
   bears: number; // 状态值
