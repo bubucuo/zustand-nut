@@ -32,11 +32,6 @@ export type Mutate<S, Ms> = number extends Ms["length" & keyof Ms]
 export interface StoreMutators<S, A> {}
 export type StoreMutatorIdentifier = keyof StoreMutators<unknown, unknown>;
 
-// export type StateCreator<T> = (
-//   setState: StoreApi<T>["setState"],
-//   getState: StoreApi<T>["getState"]
-// ) => T;
-
 export type StateCreator<
   T,
   Mis extends [StoreMutatorIdentifier, unknown][] = [],
@@ -48,11 +43,27 @@ export type StateCreator<
   store: Mutate<StoreApi<T>, Mis>
 ) => U) & {$$storeMutators?: Mos};
 
-type CreateStore = <T, Mos extends [StoreMutatorIdentifier, unknown][] = []>(
+type CreateStore = {
+  <T, Mos extends [StoreMutatorIdentifier, unknown][] = []>(
+    initializer: StateCreator<T, [], Mos>
+  ): Mutate<StoreApi<T>, Mos>;
+
+  <T>(): <Mos extends [StoreMutatorIdentifier, unknown][] = []>(
+    initializer: StateCreator<T, [], Mos>
+  ) => Mutate<StoreApi<T>, Mos>;
+};
+
+type CreateStoreImpl = <
+  T,
+  Mos extends [StoreMutatorIdentifier, unknown][] = []
+>(
   initializer: StateCreator<T, [], Mos>
 ) => Mutate<StoreApi<T>, Mos>;
 
-export const createStore: CreateStore = (createState) => {
+export const createStore = ((createState) =>
+  createState ? createStoreImpl(createState) : createStoreImpl) as CreateStore;
+
+export const createStoreImpl: CreateStoreImpl = (createState) => {
   type TState = ReturnType<typeof createState>;
   type Listener = (state: TState, prevState: TState) => void;
 
@@ -60,18 +71,20 @@ export const createStore: CreateStore = (createState) => {
   const listeners: Set<Listener> = new Set();
 
   const setState: StoreApi<TState>["setState"] = (partial, replace) => {
-    const nextState = typeof partial === "function" ? partial(state) : partial;
-
+    const nextState =
+      typeof partial === "function"
+        ? (partial as (state: TState) => TState)(state)
+        : partial;
     if (!Object.is(nextState, state)) {
       const previousState = state;
       state =
         replace ?? typeof nextState !== "object"
-          ? nextState
+          ? (nextState as TState)
           : Object.assign({}, state, nextState);
-
       listeners.forEach((listener) => listener(state, previousState));
     }
   };
+
   const getState: StoreApi<TState>["getState"] = () => state;
   const subscribe: StoreApi<TState>["subscribe"] = (listener: Listener) => {
     listeners.add(listener);
