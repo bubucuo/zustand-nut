@@ -25,20 +25,11 @@ const Child = memo(() => {
   const bears = useBearStore(
     (state: any) => state.bears,
     (a, b) => {
-      console.log(
-        "%c [  ]-29",
-        "font-size:13px; background:pink; color:#bf2c9f;",
-        a,
-        b
-      );
       return a === b;
     }
   );
 
-  // const bearsStore = useBearStore();
-  // const {bears} = bearsStore;
-
-  console.log("child ---"); //sy-log
+  console.log("child"); //sy-log
 
   return (
     <div>
