@@ -1,7 +1,7 @@
-import {create} from "zustand";
-import {immer} from "zustand/middleware/immer";
-// import {create} from "../zustand-nut";
-// import {immer} from "../zustand-nut/middleware/immer";
+// import {create} from "zustand";
+// import {immer} from "zustand/middleware/immer";
+import {create} from "../zustand-nut";
+import {immer} from "../zustand-nut/middleware/immer";
 
 interface BearState {
   bears: number; // 状态值
@@ -23,7 +23,6 @@ const useBearStore = create(
       set((draft) => {
         draft.bears -= by;
       }),
-
     reset: () => set({bears: 0}),
 
     increaseCount: () => set((state) => ({count: state.count + 1})),
