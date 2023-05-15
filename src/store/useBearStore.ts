@@ -8,7 +8,7 @@ interface BearState {
   count: number;
 
   increase: (by?: number) => void;
-  decrease: any; //(by?: number) => void;
+  decrease: (by?: number) => void;
   reset: () => void;
 
   increaseCount: () => void;
