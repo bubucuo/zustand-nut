@@ -6,7 +6,7 @@ type SetStateInternal<T> = {
     replace?: boolean | undefined
   ): void;
 }["_"];
-interface StoreApi<T> {
+export interface StoreApi<T> {
   getState: () => T;
   setState: SetStateInternal<T>;
   // 参数是监听状态值变化函数,返回取消订阅的函数

@@ -13,17 +13,17 @@ export default function BearsPage() {
 
       <button onClick={() => increaseCount()}>count: {count}</button>
 
-      {/* <Child /> */}
+      <Child />
     </div>
   );
 }
 
-// function Child() {
-//   const bears = useBearStore((state: any) => state.bears);
-//   return (
-//     <div>
-//       <h3>Child</h3>
-//       <p>{bears}</p>
-//     </div>
-//   );
-// }
+function Child() {
+  const bears = useBearStore((state: any) => state.bears);
+  return (
+    <div>
+      <h3>Child</h3>
+      <p>{bears}</p>
+    </div>
+  );
+}
