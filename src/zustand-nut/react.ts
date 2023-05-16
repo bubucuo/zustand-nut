@@ -1,15 +1,9 @@
 // react 状态管理库
 
 // import {useSyncExternalStore} from "react";
-import {
-  Mutate,
-  StateCreator,
-  StoreApi,
-  StoreMutatorIdentifier,
-  createStore,
-} from "./vanilla";
-import useSyncExternalStoreExports from "use-sync-external-store/shim/with-selector";
+import {StateCreator, StoreApi, createStore} from "./vanilla";
 
+import useSyncExternalStoreExports from "use-sync-external-store/shim/with-selector";
 const {useSyncExternalStoreWithSelector} = useSyncExternalStoreExports;
 
 type ExtractState<S> = S extends {getState: () => infer T} ? T : never;
@@ -29,32 +23,20 @@ export type UseBoundStore<S extends WithReact<ReadonlyStoreApi<unknown>>> = {
 } & S;
 
 type Create = {
-  <T, Mos extends [StoreMutatorIdentifier, unknown][] = []>(
-    initializer: StateCreator<T, [], Mos>
-  ): UseBoundStore<Mutate<StoreApi<T>, Mos>>;
-  <T>(): <Mos extends [StoreMutatorIdentifier, unknown][] = []>(
-    initializer: StateCreator<T, [], Mos>
-  ) => UseBoundStore<Mutate<StoreApi<T>, Mos>>;
-  /**
-   * @deprecated Use `useStore` hook to bind store
-   */
-  <S extends StoreApi<unknown>>(store: S): UseBoundStore<S>;
+  <T>(createState: StateCreator<T>): UseBoundStore<StoreApi<T>>;
+  <T>(): (createState: StateCreator<T>) => UseBoundStore<StoreApi<T>>;
 };
 
-export const create = function <T>(
-  createState: StateCreator<T, [], []> | undefined
-) {
+export const create = function <T>(createState: StateCreator<T>) {
   return createState ? createImpl(createState) : createImpl;
 } as Create;
 
-function createImpl<T>(createState: StateCreator<T, [], []>) {
+function createImpl(createState: StateCreator<T>) {
   const api =
     typeof createState === "function" ? createStore(createState) : createState;
 
-  const useBoundStore: any = (selector?: any, equalityFn?: any) =>
+  const useBoundStore = (selector?: any, equalityFn?: any) =>
     useStore(api, selector, equalityFn);
-
-  Object.assign(useBoundStore, api);
 
   return useBoundStore;
 }

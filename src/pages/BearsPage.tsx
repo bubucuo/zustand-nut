@@ -1,8 +1,8 @@
+import {memo} from "react";
 import useBearStore from "../store/useBearStore";
 
 export default function BearsPage() {
   const bearsStore = useBearStore();
-
   const {bears, count, increase, decrease, reset, increaseCount} = bearsStore;
   return (
     <div>
@@ -19,12 +19,22 @@ export default function BearsPage() {
   );
 }
 
-function Child() {
-  const bears = useBearStore((state: any) => state.bears);
+// do not overuse custom hooks
+// 不要过渡使用自定义 hook
+const Child = memo(() => {
+  const bears = useBearStore(
+    (state: any) => state.bears,
+    (a, b) => {
+      return a === b;
+    }
+  );
+
+  console.log("child"); //sy-log
+
   return (
     <div>
       <h3>Child</h3>
       <p>{bears}</p>
     </div>
   );
-}
+});
